@@ -1,7 +1,7 @@
 function main() {
     var body = document.getElementsByTagName("body")[0];
     body.innerHTML = '<div><input id=newAction />' +
-        '<button onclick="create()">Create</button></div>' +
+        '<button onclick="create()">Create</button>' +
         '<button onclick="change()">Change</button></div>' +
         '<div id="actions"></div>' +
         '<input id="storageName" /><button onclick="sync()">sync</button></div>' +
@@ -12,13 +12,14 @@ function main() {
     var actionsTag = document.getElementById('actions');
     var statTag = document.getElementById('stat');
     var logTag = document.getElementById('log');
+    var dayedEvents;
 
     var storageName = localStorage.getItem("defaultStorageName") || "timelog";
     $("#storageName").val(storageName);
 
     var events = JSON.parse(localStorage.getItem(storageName) || "[]");
 
-    function sync() {
+    window.sync = function sync() {
         update();
         storageName = $("#storageName").val();
         events = JSON.parse(localStorage.getItem(storageName) || "[]");
@@ -32,7 +33,14 @@ function main() {
         var actions = {};
         var prevTime = Date.now();
 
+        dayedEvents = {};
+
+        var first = true;
         events.forEach(function(a) {
+            if(first) {
+                $("#newAction").val(a.name);
+                first = false;
+            }
             a.usedTime = Math.round((prevTime - Date.parse(a.beginTime))/36000)/100;
 
             var isotime = (new Date(a.beginTime)).toISOString();
@@ -49,10 +57,15 @@ function main() {
             actions[a.name] = true;
             
             prevTime = Date.parse(a.beginTime);
+                
+            if(!dayedEvents[bucket]) {
+                dayedEvents[bucket] = [];
+            };
+            dayedEvents[bucket].push(a);
         });
 
-        logTag.innerHTML = JSON.stringify(events, undefined, 2);
         statTag.innerHTML = JSON.stringify(times, undefined, 2);
+        logTag.innerHTML = JSON.stringify(events, undefined, 2) + JSON.stringify(dayedEvents, undefined, 2);
 
         actionsTag.innerHTML = "";
         Object.keys(actions).forEach(function(action) {
