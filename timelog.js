@@ -1,12 +1,10 @@
-document.write("hello world");
-
-
 function main() {
     var body = document.getElementsByTagName("body")[0];
     body.innerHTML = '<div><input id=newAction />' +
         '<button onclick="create()">Create</button></div>' +
         '<button onclick="change()">Change</button></div>' +
         '<div id="actions"></div>' +
+        '<input id="storageName" /><button onclick="sync()">sync</button></div>' +
         '<pre id="stat"></pre>' +
         '<pre id="log"></div>';
     setTimeout(update, 0);
@@ -15,10 +13,17 @@ function main() {
     var statTag = document.getElementById('stat');
     var logTag = document.getElementById('log');
 
-    function toISO(x) { return (new Date(x)).toISOString(); };
+    var storageName = localStorage.getItem("defaultStorageName") || "timelog";
+    $("#storageName").val(storageName);
 
+    var events = JSON.parse(localStorage.getItem(storageName) || "[]");
 
-    events = JSON.parse(localStorage.getItem("timelog") || "[]");
+    function sync() {
+        update();
+        storageName = $("#storageName").val();
+        events = JSON.parse(localStorage.getItem(storageName) || "[]");
+        update();
+    }
 
     function update() {
         events.sort(function(a, b) { return Date.parse(b.beginTime) - Date.parse(a.beginTime); });
@@ -26,6 +31,7 @@ function main() {
         var times = {};
         var actions = {};
         var prevTime = Date.now();
+
         events.forEach(function(a) {
             a.usedTime = Math.round((prevTime - Date.parse(a.beginTime))/36000)/100;
 
@@ -56,7 +62,7 @@ function main() {
             actionsTag.appendChild(button);
         });
 
-        localStorage.setItem("timelog", JSON.stringify(events));
+        localStorage.setItem(storageName, JSON.stringify(events));
     }
     setInterval(update, 10000);
     
@@ -75,3 +81,5 @@ function main() {
         setAction(document.getElementById("newAction").value.trim());
     }
 };
+
+$(main);
