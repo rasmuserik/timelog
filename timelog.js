@@ -1,12 +1,11 @@
 function main() {
-    var body = document.getElementsByTagName("body")[0];
-    body.innerHTML = '<div><input id=newAction />' +
+    $("body").html('<div><input id=newAction />' +
         '<button onclick="create()">Create</button>' +
         '<button onclick="change()">Change</button></div>' +
         '<div id="actions"></div>' +
-        '<input id="storageName" /><button onclick="sync()">sync</button></div>' +
+        '<input id="storageName" /><input size="2" type="number" id="daysToSync" value="2" /><button onclick="sync()">sync</button></div>' +
         '<pre id="stat"></pre>' +
-        '<pre id="log"></div>';
+        '<pre id="log"></div>');
     setTimeout(update, 0);
 
     var actionsTag = document.getElementById('actions');
@@ -17,13 +16,74 @@ function main() {
     var storageName = localStorage.getItem("defaultStorageName") || "timelog";
     $("#storageName").val(storageName);
 
-    var events = JSON.parse(localStorage.getItem(storageName) || "[]");
+    events = JSON.parse(localStorage.getItem(storageName) || "[]");
+
+    var syncing = false;
 
     window.sync = function sync() {
+        if(syncing) return;
+        syncing = true;
+
         update();
         storageName = $("#storageName").val();
         events = JSON.parse(localStorage.getItem(storageName) || "[]");
         update();
+
+        $("#newAction").val("...syncing...");
+
+        var url = "http://storage.solsort.dk/timelog-" + storageName + "/";
+
+        var dateToFetch = (new Date()).getTime();
+        var i = 0;
+
+        var ss_events = {};
+        var allevents = [];
+        function fetchDate() {
+            if(++i > +$("#daysToSync").val()) {
+                fetchingDone();
+                return;
+            }
+            var bucket = (new Date(dateToFetch)).toISOString().slice(0,10)
+            $("#storageName").val("...syncing " + bucket + "...");
+            dateToFetch -= 24*60*60*1000;
+            $.ajax({
+                url: url + bucket,
+                dataType: "jsonp",
+                success: function(data) {
+                    console.log(bucket, data, dayedEvents[bucket]);
+                    var resultEvents = [];
+                    var t = {};
+                    function addelem(elem) {
+                        t[elem.beginTime] = elem;
+                    };
+                    Array.isArray(data) && data.forEach(addelem);
+                    Array.isArray(dayedEvents[bucket]) && dayedEvents[bucket].forEach(addelem);
+                    Object.keys(t).forEach(function(key) {
+                        resultEvents.push(t[key]);
+                        allevents.push(t[key]);
+                    });
+                    console.log(JSON.stringify(resultEvents), data, JSON.stringify(data));
+
+                    $.ajax({
+                        url: url+bucket,
+                        dataType: "jsonp",
+                        data: { 
+                            put: JSON.stringify(resultEvents),
+                            prev: JSON.stringify(data)
+                        }
+                    });
+                    fetchDate();
+                }
+            });
+        }
+        fetchDate();
+
+        function fetchingDone() {
+            syncing = false;
+            events = allevents;
+            $("#storageName").val(storageName);
+            update();
+        }
     }
 
     function update() {
