@@ -48,9 +48,14 @@ function main() {
             dateToFetch -= 24*60*60*1000;
             $.ajax({
                 url: url + bucket,
-                dataType: "jsonp",
+                type: "GET",
+                dataType: "json",
+                error: function(x) {
+                    console.log("GET error", x);
+                    fetchDate();
+                },
                 success: function(data) {
-                    console.log(bucket, data, dayedEvents[bucket]);
+                    console.log("GETsuccess",bucket, data, dayedEvents[bucket]);
                     var resultEvents = [];
                     var t = {};
                     function addelem(elem) {
@@ -63,13 +68,14 @@ function main() {
                         allevents.push(t[key]);
                     });
                     console.log(JSON.stringify(resultEvents), data, JSON.stringify(data));
+                    localStorage.setItem(storageName + " " + bucket, JSON.stringify(resultEvents));
 
                     $.ajax({
+                        type: "POST",
                         url: url+bucket,
-                        dataType: "jsonp",
                         data: { 
                             put: JSON.stringify(resultEvents),
-                            prev: JSON.stringify(data)
+                            prev: JSON.stringify(data),
                         }
                     });
                     fetchDate();
