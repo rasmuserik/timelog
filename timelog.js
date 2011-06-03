@@ -67,10 +67,11 @@ function main() {
                         resultEvents.push(t[key]);
                         allevents.push(t[key]);
                     });
-                    console.log(JSON.stringify(resultEvents), data, JSON.stringify(data));
+                    //console.log(JSON.stringify(resultEvents), data, JSON.stringify(data));
                     localStorage.setItem(storageName + " " + bucket, JSON.stringify(resultEvents));
 
-                    $.ajax({
+                    
+                    var reqObj = {
                         type: "POST",
                         url: url+bucket,
                         data: { 
@@ -79,7 +80,10 @@ function main() {
                         },
                         success: function(x) { console.log("POST success", x, this); },
                         failure: function(x) { console.log("POST failure", x, this); }
-                    });
+                    };
+                    XXXXX = reqObj;
+                    $.ajax(reqObj);
+
                     fetchDate();
                 }
             });
