@@ -49,13 +49,18 @@ function main() {
             $.ajax({
                 url: url + bucket,
                 type: "GET",
-                dataType: "json",
+                dataType: "text",
                 error: function(x) {
                     console.log("GET error", x);
                     fetchDate();
                 },
                 success: function(data) {
                     console.log("GETsuccess",bucket, data, dayedEvents[bucket]);
+                    if(data.trim() === "undefined") {
+                        data = undefined;
+                    } else {
+                        data = JSON.parse(data);
+                    }
                     var resultEvents = [];
                     var t = {};
                     function addelem(elem) {
