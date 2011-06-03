@@ -51,11 +51,11 @@ function main() {
                 type: "GET",
                 dataType: "json",
                 error: function(x) {
-                    console.log("GET error", x);
+                    //console.log("GET error", x);
                     fetchDate();
                 },
                 success: function(data) {
-                    console.log("GETsuccess",bucket, data, dayedEvents[bucket]);
+                    //console.log("GETsuccess",bucket, data, dayedEvents[bucket]);
                     var resultEvents = [];
                     var t = {};
                     function addelem(elem) {
@@ -77,11 +77,11 @@ function main() {
                         data: { 
                             put: JSON.stringify(resultEvents),
                             prev: JSON.stringify(data)
-                        },
-                        success: function(x) { console.log("POST success", x, this); },
-                        failure: function(x) { console.log("POST failure", x, this); }
+                        }//,
+                        //success: function(x) { console.log("POST success", x, this); },
+                        //failure: function(x) { console.log("POST failure", x, this); }
                     };
-                    XXXXX = reqObj;
+                    //XXXXX = reqObj;
                     $.ajax(reqObj);
 
                     fetchDate();
