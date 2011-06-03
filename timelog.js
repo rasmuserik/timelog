@@ -76,6 +76,8 @@ function main() {
                         data: { 
                             put: JSON.stringify(resultEvents),
                             prev: JSON.stringify(data),
+                            success: function(x) { console.log("POST success", x); },
+                            failure: function(x) { console.log("POST failure", x); }
                         }
                     });
                     fetchDate();
