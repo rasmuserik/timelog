@@ -83,14 +83,12 @@ function main() {
                             put: JSON.stringify(resultEvents),
                             prev: JSON.stringify(data)
                         },
-                        success: function(x) { console.log("POST success", x, this, this.data); },
-                        failure: function(x) { console.log("POST failure", x, this, this.data); }
+                        success: function(x) { console.log("POST success", x, this, this.data); fetchDate()},
+                        failure: function(x) { console.log("POST failure", x, this, this.data); fetchDate()}
                     };
                     XXXXX = reqObj;
                     console.log("request:", reqObj);
                     $.ajax(reqObj);
-
-                    fetchDate();
                 }
             });
         }
