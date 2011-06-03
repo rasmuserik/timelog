@@ -21,7 +21,7 @@ function main() {
     var syncing = false;
 
     window.sync = function sync() {
-        if(syncing) return;
+//        if(syncing) return;
         syncing = true;
 
         update();
