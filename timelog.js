@@ -78,8 +78,8 @@ function main() {
                             put: JSON.stringify(resultEvents),
                             prev: JSON.stringify(data)
                         },
-                        success: function(x) { console.log("POST success", x, this); },
-                        failure: function(x) { console.log("POST failure", x, this); }
+                        success: function(x) { console.log("POST success", x, this, this.data); },
+                        failure: function(x) { console.log("POST failure", x, this, this.data); }
                     };
                     XXXXX = reqObj;
                     console.log("request:", reqObj);
