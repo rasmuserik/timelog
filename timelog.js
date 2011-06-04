@@ -3,7 +3,7 @@ function main() {
         '<button onclick="create()">Create</button>' +
         '<button onclick="change()">Change</button></div>' +
         '<div id="actions"></div>' +
-        '<input id="storageName" /><input size="2" type="number" id="daysToSync" value="2" /><button onclick="sync()">sync</button></div>' +
+        '<div><button onclick="sync()">sync</button><button onclick="syncAll()">syncAll</button></div>' +
         '<pre id="stat"></pre>' +
         '<pre id="log"></div>');
     setTimeout(update, 0);
@@ -21,85 +21,91 @@ function main() {
     var syncing = false;
 
     window.sync = function sync() {
-//        if(syncing) return;
-        syncing = true;
+        function toUnixTime(e) {
+            return (new Date(e.beginTime)).getTime() / 1000 | 0;
+        }
 
-        update();
-        storageName = $("#storageName").val();
-        events = JSON.parse(localStorage.getItem(storageName) || "[]");
-        update();
+        now = (new Date()).getTime()/1000|0;
 
-        $("#newAction").val("...syncing...");
+        var localChanges = {};
+        for(var i=0;i<events.length;++i) {
+            if(toUnixTime(events[i]) > now - 24*60*60*7) {
+                localChanges [toUnixTime(events[i])] = events[i];
+            }
+        }
 
-        var url = "http://storage.solsort.dk/timelog-" + storageName + "/";
 
-        var dateToFetch = (new Date()).getTime();
+        remoteChanges = [];
+        $.ajax({
+            url: "http://storage.solsort.dk/timelog", 
+            dataType: "jsonp", 
+            data: {time:now}, 
+            success: function(data) {
+                data.forEach(function(elem) {
+                    if(!localChanges[elem.time]) {
+                        remoteChanges.push(elem);
+                        events.push({
+                            beginTime: (new Date(elem.time*1000)).toISOString(),
+                            name: elem.action});
+                    } else if(localChanges[elem.time].name === elem.action) {
+                        delete localChanges[elem.time];
+                    }
+                });
+
+                console.log(localChanges, remoteChanges);
+
+                var localKeys = Object.keys(localChanges);
+                var i = 0;
+                function next() {
+                    if(i >= localKeys.length) {
+                        update();
+                        console.log("next-key exit");
+                        return;
+                    }
+                    event = localChanges[localKeys[i]];
+                    ++i;
+    
+                    console.log("next", event, this);
+                    $.ajax({
+                        url: "http://storage.solsort.dk/timelog",
+                        dataType: "jsonp",
+                        data: {
+                            action: event.name.replace(RegExp("[^a-zA-Z0-9-_]", "g"), function(a) { function hex(i,n) {return n?hex(i/16,--n)+"0123456789abcdef"[i&15]:""}; return "\\u"+hex(a.charCodeAt(0),4)}),
+                            time: toUnixTime(event)
+                        },
+                        success: next, error: next
+                    });
+                }
+                next();
+            }
+        });
+    }
+    
+
+    window.syncAll = function syncAll() {
         var i = 0;
-
-        var ss_events = {};
-        var allevents = [];
-        function fetchDate() {
-            if(++i > +$("#daysToSync").val()) {
-                fetchingDone();
+        function next() {
+            if(i >= events.length) {
+                update();
+                console.log("next-exit");
                 return;
             }
-            var bucket = (new Date(dateToFetch)).toISOString().slice(0,10)
-            $("#storageName").val("...syncing " + bucket + "...");
-            dateToFetch -= 24*60*60*1000;
+            var event = events[i]
+            ++i;
+
+            console.log("next", event, this);
             $.ajax({
-                url: url + bucket,
-                type: "GET",
-                dataType: "text",
-                error: function(x) {
-                    console.log("GET error", x);
-                    fetchDate();
+                url: "http://storage.solsort.dk/timelog",
+                dataType: "jsonp",
+                data: {
+                    action: event.name.replace(RegExp("[^a-zA-Z0-9-_]", "g"), function(a) { function hex(i,n) {return n?hex(i/16,--n)+"0123456789abcdef"[i&15]:""}; return "\\u"+hex(a.charCodeAt(0),4)}),
+                    time: toUnixTime(event)
                 },
-                success: function(data) {
-                    console.log("GETsuccess",bucket, data, dayedEvents[bucket]);
-                    if(data.trim() === "undefined") {
-                        data = undefined;
-                    } else {
-                        data = JSON.parse(data);
-                    }
-                    var resultEvents = [];
-                    var t = {};
-                    function addelem(elem) {
-                        t[elem.beginTime] = elem;
-                    };
-                    Array.isArray(data) && data.forEach(addelem);
-                    Array.isArray(dayedEvents[bucket]) && dayedEvents[bucket].forEach(addelem);
-                    Object.keys(t).forEach(function(key) {
-                        resultEvents.push(t[key]);
-                        allevents.push(t[key]);
-                    });
-                    //console.log(JSON.stringify(resultEvents), data, JSON.stringify(data));
-                    localStorage.setItem(storageName + " " + bucket, JSON.stringify(resultEvents));
-
-                    
-                    var reqObj = {
-                        type: "POST",
-                        url: url+bucket,
-                        data: { 
-                            put: JSON.stringify(resultEvents),
-                            prev: JSON.stringify(data)
-                        },
-                        success: function(x) { console.log("POST success", x, this, this.data); fetchDate()},
-                        failure: function(x) { console.log("POST failure", x, this, this.data); fetchDate()}
-                    };
-                    XXXXX = reqObj;
-                    console.log("request:", reqObj);
-                    $.ajax(reqObj);
-                }
+                success: next, error: next
             });
-        }
-        fetchDate();
 
-        function fetchingDone() {
-            syncing = false;
-            events = allevents;
-            $("#storageName").val(storageName);
-            update();
         }
+        next();
     }
 
     function update() {
