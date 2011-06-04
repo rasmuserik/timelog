@@ -29,7 +29,7 @@ function main() {
 
         var localChanges = {};
         for(var i=0;i<events.length;++i) {
-            if(toUnixTime(events[i]) > now - 24*60*60*7) {
+            if(toUnixTime(events[i]) > now - 24*60*60*30) {
                 localChanges [toUnixTime(events[i])] = events[i];
             }
         }
