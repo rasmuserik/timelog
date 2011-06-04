@@ -5,7 +5,7 @@ function main() {
         '<div id="actions"></div>' +
         '<div><button onclick="sync()">sync</button><button onclick="syncAll()">syncAll</button></div>' +
         '<pre id="stat"></pre>' +
-        '<pre id="log"></div>');
+        '<div id="log"></div>');
     setTimeout(update, 0);
 
     var actionsTag = document.getElementById('actions');
