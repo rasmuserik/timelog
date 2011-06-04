@@ -159,7 +159,6 @@ function main() {
 
         localStorage.setItem(storageName, JSON.stringify(events));
     }
-    setInterval(update, 10000);
     
     setAction = function(actionName) {
         events.push({ name: String(actionName), 
