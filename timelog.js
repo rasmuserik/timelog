@@ -134,7 +134,7 @@ function main() {
 
             var time = times[bucket] || {};
             times[bucket] = time;
-            time[a.name] = (time[a.name] || 0) + a.usedTime;
+            time[a.name] = Math.round(((time[a.name] || 0) + a.usedTime)*100)/100;
 
             actions[a.name] = true;
             
