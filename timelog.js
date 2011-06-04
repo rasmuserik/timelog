@@ -2,7 +2,7 @@ function main() {
     $("body").html('<div><input id=newAction />' +
         '<button onclick="create()">Create</button>' +
         '<button onclick="change()">Change</button></div>' +
-        '<div id="actions"></div>' +
+        '<hr/><div id="actions"></div><hr/>' +
         '<div><button onclick="sync()">sync</button><button onclick="syncAll()">syncAll</button></div>' +
         '<pre id="stat"></pre>' +
         '<div id="log"></div>');
