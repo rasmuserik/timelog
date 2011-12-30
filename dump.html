@@ -1,0 +1,49 @@
+<!doctype html>
+<html manifest="manifest.appcache">
+    <head>
+        <meta charset="utf-8">
+        <title>TimeLog</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" href="style.css">
+        <meta name="description" content="">
+        <meta name="author" content="rasmuserik.dk">
+        <meta name="HandheldFriendly" content="True">
+        <meta name="MobileOptimized" content="320"/>
+        <meta name="viewport" content="width=320, initial-scale=1.0">
+        <!--meta name="viewport" content="width=device-width, initial-scale=1.0"-->
+        <link rel="apple-touch-icon-precomposed" href="icon.png" !-- 114x114px -->
+        <link rel="shortcut icon" href="icon.png">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-startup-image" href="splash.png" !-- 320x460px -->
+    </head>
+    <body>
+        <script src="es5shim.js"></script>
+        <script src="json2.js"></script>
+        <script src="jquery16min.js"></script>
+        <script>$(function() {
+            now = (new Date()).getTime()/1000|0;
+            var count = 20;
+            var result = [];
+            function processData() {
+                console.log(result);
+                $('body').text(JSON.stringify(result));
+            }
+            function getData() {
+                if(--count<0) return processData();
+                console.log('now:', now);
+                $.ajax({ url: "http://storage.solsort.dk/timelog", 
+                     dataType: "jsonp", 
+                     data: {time:now}, 
+                     success: function(data) {
+                        data.forEach(function(elem) {
+                            result.push(elem)
+                        });
+                        getData();
+                }});
+                now -= 30*24*60*60;
+            };
+            getData();
+        });</script>
+    </body>
+</html>
