@@ -1,4 +1,4 @@
-# Simple time tracker application
+# ![logo](https://solsort.com/_logo.png) Simple time tracker application
 
 ## TODO:
 
